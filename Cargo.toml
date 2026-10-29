@@ -1,0 +1,10 @@
+[package]
+name = "ekliptyka"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.37.0"
+egui = "0.37.0"
+jiff = "0.2.38"
+vsop87 = "3.0.0"

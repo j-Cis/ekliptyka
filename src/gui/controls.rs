@@ -4,7 +4,10 @@ use eframe::egui;
 
 use crate::{
 	app::{AppMode, EclipticaApp},
-	core::astro::specs::{find_time_and_distance_for_longitude, sun_position},
+	core::astro::{
+		astro_plural::Cycle,
+		specs::{find_time_and_distance_for_longitude, sun_position},
+	},
 };
 
 pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
@@ -73,6 +76,8 @@ pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 							// Aktualizacja pozycji Ziemi na głównym rysunku
 							// (Canvas)
 							app.earth_angle = lon.to_radians() as f32;
+							app.show_single_earth = true;
+							app.show_multiple_earths = false;
 
 							// Parsujemy rok (zakładamy bazowy 2000 dla
 							// wyliczeń)
@@ -145,6 +150,8 @@ pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 								// Aktualizujemy widok orbity tak samo jak w
 								// Scenariuszu 1
 								app.earth_angle = angle.to_radians() as f32;
+								app.show_single_earth = true;
+								app.show_multiple_earths = false;
 								let years_from_2000 = year as f32 - 2000.0;
 								app.visual_precession_angle = (years_from_2000 * 1.0).to_radians();
 							}
@@ -162,20 +169,98 @@ pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 				ui.add_space(5.0);
 				ui.label(egui::RichText::new(&app.calc2_result).color(egui::Color32::LIGHT_BLUE));
 			}
-		}
-		AppMode::Animation => {
-			ui.label("Sterowanie Animacją");
+
+			ui.separator();
+
+			// --- SCENARIUSZ 3 ---
+			ui.label("Scenariusz 3: Rok + Ilość Części -> Daty");
 			ui.horizontal(|ui| {
-				if ui.button("▶ Play").clicked() {
-					app.is_playing = true;
-				}
-				if ui.button("⏸ Pause").clicked() {
-					app.is_playing = false;
+				ui.add(egui::TextEdit::singleline(&mut app.input_from_parts.year).desired_width(50.0));
+				ui.label("Rok");
+				ui.add(egui::TextEdit::singleline(&mut app.input_from_parts.parts).desired_width(50.0));
+				ui.label("Części");
+			});
+
+			ui.horizontal(|ui| {
+				ui.label("Strefa:");
+				ui.add(egui::TextEdit::singleline(&mut app.input_from_parts.zone).desired_width(65.0));
+			});
+
+			ui.add_space(5.0);
+
+			ui.horizontal(|ui| {
+				if ui.button("Oblicz ⚙️").clicked() {
+					let parsed_year = app.input_from_parts.year.trim().parse::<i16>();
+					let parsed_parts = app.input_from_parts.parts.trim().parse::<u64>();
+
+					match (parsed_year, parsed_parts) {
+						(Ok(year), Ok(parts)) => {
+							let cycle = Cycle::new(parts, year);
+							app.calc3_points.clear();
+
+							for point in cycle.points.iter() {
+								let label = format!("{}/{}", point.etykieta.0, point.etykieta.1);
+								let info = format!(
+									"[{}] {:.1}° -> {} {}",
+									label, point.kat, point.data_miesieczna, point.godzina_utc
+								);
+								app.calc3_points.push(crate::app::PlottedPoint {
+									label,
+									info,
+									angle_rad: point.kat.to_radians() as f32,
+								});
+							}
+
+							// Ukryj pojedynczą Ziemię, pokaż wygenerowane
+							app.show_single_earth = false;
+							app.show_multiple_earths = true;
+
+							if let Ok(y) = app.input_from_parts.year.trim().parse::<f32>() {
+								let years_from_2000 = y - 2000.0;
+								let prec_deg = 102.9 + years_from_2000 * (360.0 / 21000.0);
+								app.visual_precession_angle = prec_deg.to_radians();
+							}
+						}
+						_ => { /* Błąd */ }
+					}
 				}
 			});
 
-			ui.add_space(10.0);
-
+			//  wyświetlamy tylko tekst informacji
+			if !app.calc3_points.is_empty() {
+				ui.add_space(5.0);
+				for pt in &app.calc3_points {
+					ui.label(egui::RichText::new(&pt.info).color(egui::Color32::GOLD));
+				}
+			}
+		}
+		AppMode::Animation => {
+		ui.label("Sterowanie Animacją");
+					ui.add_space(5.0);
+		
+					// Jeden duży przycisk typu toggle (Play / Pause)
+					let (btn_text, btn_color) = if app.is_playing {
+						("⏸ Pause", egui::Color32::from_rgb(170, 119, 93))
+					} else {
+						("▶ Play", egui::Color32::from_rgb(72, 123, 170))
+					};
+		
+					let play_btn = egui::Button::new(
+						egui::RichText::new(btn_text)
+							.font(egui::FontId::proportional(16.0))
+							.color(egui::Color32::WHITE)
+							.strong(),
+					)
+					.min_size(egui::vec2(140.0, 36.0))
+					.fill(btn_color);
+		
+					if ui.add(play_btn).clicked() {
+						app.is_playing = !app.is_playing;
+					}
+		
+					ui.add_space(10.0);
+					ui.separator();
+ui.add_space(10.0);
 			// --- SUWAK 1: POZYCJA ZIEMI ---
 			ui.heading("Ruch orbitalny Ziemi");
 			ui.label("Pełny obrót wokół Słońca (1 rok)");
@@ -214,10 +299,6 @@ pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 
 			ui.separator();
 			ui.separator();
-		}
-		AppMode::PointTables => {
-			ui.label("Generowanie Tabeli");
-			let _ = ui.button("Generuj Cykl");
 		}
 	}
 }

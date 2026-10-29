@@ -19,21 +19,15 @@ pub mod astro_single {
 	}
 
 	impl PartialEq for CyclePoint {
-		fn eq(&self, other: &Self) -> bool {
-			self.timestamp_sec == other.timestamp_sec
-		}
+		fn eq(&self, other: &Self) -> bool { self.timestamp_sec == other.timestamp_sec }
 	}
 	impl Eq for CyclePoint {}
 
 	impl PartialOrd for CyclePoint {
-		fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-			Some(self.cmp(other))
-		}
+		fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 	}
 	impl Ord for CyclePoint {
-		fn cmp(&self, other: &Self) -> Ordering {
-			self.timestamp_sec.cmp(&other.timestamp_sec)
-		}
+		fn cmp(&self, other: &Self) -> Ordering { self.timestamp_sec.cmp(&other.timestamp_sec) }
 	}
 }
 
@@ -412,9 +406,7 @@ pub mod specs {
 		(0, 1, 0, 0, 1, -15.0, 0.0),
 	];
 
-	fn series(terms: &[Term], tau: f64) -> f64 {
-		terms.iter().map(|&(a, b, c)| a * (b + c * tau).cos()).sum::<f64>()
-	}
+	fn series(terms: &[Term], tau: f64) -> f64 { terms.iter().map(|&(a, b, c)| a * (b + c * tau).cos()).sum::<f64>() }
 
 	/// Nutacja w długości Δψ w stopniach; t – stulecia juliańskie od J2000.0.
 	fn nutation_in_longitude_deg(t: f64) -> f64 {

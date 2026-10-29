@@ -1,1 +1,1 @@
-# ekliptyka
+# Kalkulator pozycji ziemi

@@ -1,2 +1,2 @@
-cargo fix --allow-dirty --allow-no-vcs
 cargo +nightly fmt --all
+cargo fix --allow-dirty --allow-no-vcs

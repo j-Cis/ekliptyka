@@ -1,5 +1,5 @@
+cargo +nightly fmt --all
 git push origin --tags
 git push origin main --follow-tags
-cargo +nightly fmt --all
 trunk serve --address 127.0.0.1 --port 8080 --open
 cargo fix --allow-dirty --allow-no-vcs

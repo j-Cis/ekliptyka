@@ -131,9 +131,8 @@ pub fn render_controls(app: &mut EclipticaApp, slots: &mut [egui::Ui]) {
 
 							let unix_seconds = (jd - 2440587.5) * 86400.0;
 							if let Ok(timestamp) = jiff::Timestamp::from_second(unix_seconds.round() as i64) {
-								let tz: jiff::tz::TimeZone =
-									jiff::tz::TimeZone::get(app.input_from_point.zone.trim())
-										.unwrap_or(jiff::tz::TimeZone::UTC);
+								let tz: jiff::tz::TimeZone = jiff::tz::TimeZone::get(app.input_from_point.zone.trim())
+									.unwrap_or(jiff::tz::TimeZone::UTC);
 								let point_time = timestamp.to_zoned(tz);
 
 								app.calc2_result = format!(

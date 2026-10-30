@@ -102,27 +102,28 @@ impl Default for EclipticaApp {
 
 impl eframe::App for EclipticaApp {
 	fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-		let layout = AppLayout { 
-			show_panel: self.show_bottom_panel, 
-			mode: self.mode 
-		};
+		let layout = AppLayout { show_panel: self.show_bottom_panel, mode: self.mode };
 
 		let mut frame = layout.begin(ui);
 
 		// 1. Zapełniamy Kanwę (góra)
 		canvas::render_orbit(self, &mut frame.canvas_ui);
 
-		// 2. Zapełniamy Chowany Panel z kontrolkami (bezpośrednio w gniazda foveae)
+		// 2. Zapełniamy Chowany Panel z kontrolkami (bezpośrednio w gniazda
+		//    foveae)
 		if let Some(mut slots) = frame.panel_slots {
 			controls::render_controls(self, &mut slots);
 		}
 
 		// 3. Zapełniamy Dolną Belkę wstrzykując elementy do jej 7 foveae
-		if LayoutFrame::toggle_button(&mut frame.nav_slots[0], self.mode == AppMode::BasicCalculations, "🧮 Kalkulator").clicked() {
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[0], self.mode == AppMode::BasicCalculations, "🧮 Kalkulator")
+			.clicked()
+		{
 			self.mode = AppMode::BasicCalculations;
 		}
 
-		if LayoutFrame::toggle_button(&mut frame.nav_slots[1], self.mode == AppMode::Animation, "🌀 Animacja").clicked() {
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[1], self.mode == AppMode::Animation, "🌀 Animacja").clicked()
+		{
 			self.mode = AppMode::Animation;
 		}
 

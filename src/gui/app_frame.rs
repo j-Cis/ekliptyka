@@ -17,12 +17,6 @@ pub mod vas {
 		Auto,
 	}
 
-	// impl Default for Spatium {
-	//     fn default() -> Self {
-	//         Self::Auto
-	//     }
-	// }
-
 	#[derive(Debug, Clone)]
 	pub struct Fovea {
 		/// Deklarowana rozpiętość (np. w procentach lub pikselach)
@@ -86,9 +80,7 @@ pub mod vas {
 		Paginatio,
 	}
 
-	/// Wspólny rdzeń geometryczny i strukturalny dla każdego kontenera. Z
-	/// definicji zajmuje zawsze 100% x 100%. (albo jako root, albo 100% w
-	/// dostępnym gnieździe)
+	/// Wspólny rdzeń geometryczny i strukturalny dla każdego kontenera.
 	pub struct Vas {
 		/// Orientacja osi głównej: true = pozioma, false = pionowa.
 		pub axis_maior_horizontalis: bool,
@@ -108,7 +100,46 @@ pub mod vas {
 	}
 
 	impl Vas {
-		pub fn resolve(&self, rect: egui::Rect) -> Vec<(usize, egui::Rect)> {
+		/// Oblicza całkowitą wymaganą rozpiętość zawartości na osi głównej
+		pub fn total_content_length(&self, rect: egui::Rect) -> f32 {
+			let (am, cm, _at, _ct, gap) = self.padding_am_cm_at_ct_gap;
+			let visible_foveae: Vec<&Fovea> = self.foveae.iter().filter(|f| !f.latens).collect();
+			if visible_foveae.is_empty() {
+				return 0.0;
+			}
+			let total_gap = gap * (visible_foveae.len() - 1) as f32;
+			let main_length = if self.axis_maior_horizontalis {
+				(rect.width() - am - cm).max(0.0)
+			} else {
+				(rect.height() - am - cm).max(0.0)
+			};
+			let available_length = (main_length - total_gap).max(0.0);
+
+			let mut allocated = 0.0;
+			let mut auto_count = 0;
+			for fovea in &visible_foveae {
+				match fovea.spatium {
+					Spatium::Pixel(px) => allocated += px,
+					Spatium::Percent(pct) => allocated += available_length * (pct / 100.0),
+					Spatium::Auto => auto_count += 1,
+				}
+			}
+
+			if auto_count > 0 {
+				// W Volutatio minimalny rozmiar gniazda Auto to 115 px (miejsce
+				// na ikonę i tekst bez łamania wiersza)
+				let min_auto = if self.redundantia_maior == Redundantia::Volutatio { 115.0 } else { 0.0 };
+				let remaining = (available_length - allocated).max(0.0);
+				let auto_size = (remaining / auto_count as f32).max(min_auto);
+				allocated += auto_size * auto_count as f32;
+			}
+
+			allocated + total_gap + am + cm
+		}
+
+		pub fn resolve(&self, rect: egui::Rect) -> Vec<(usize, egui::Rect)> { self.resolve_scroll(rect, 0.0) }
+
+		pub fn resolve_scroll(&self, rect: egui::Rect, scroll_offset: f32) -> Vec<(usize, egui::Rect)> {
 			let (am, cm, at, ct, gap) = self.padding_am_cm_at_ct_gap;
 
 			let mut inner_rect = rect;
@@ -158,7 +189,10 @@ pub mod vas {
 
 			let remaining_length = (available_length - allocated_length).max(0.0);
 			if auto_count > 0 {
-				let auto_size = remaining_length / auto_count as f32;
+				// W Volutatio gniazda zachowują oryginalny rozmiar i NIE MOGĄ
+				// skurczyć się poniżej wymaganych 115 px
+				let min_auto = if self.redundantia_maior == Redundantia::Volutatio { 115.0 } else { 0.0 };
+				let auto_size = (remaining_length / auto_count as f32).max(min_auto);
 				for (i, fovea) in visible_foveae.iter().enumerate() {
 					if matches!(fovea.spatium, Spatium::Auto) {
 						sizes[i] = auto_size;
@@ -167,6 +201,8 @@ pub mod vas {
 				}
 			}
 
+			// WYŁĄCZNIE Compressio ma prawo zmniejszać wymiary, aby upchnąć
+			// zawartość
 			if allocated_length > available_length && self.redundantia_maior == Redundantia::Compressio {
 				let scale = available_length / allocated_length;
 				for size in &mut sizes {
@@ -176,10 +212,19 @@ pub mod vas {
 
 			let mut results = Vec::new();
 
+			// W Volutatio punkt startowy jest przesuwany o scroll_offset
 			let mut current_pos = if self.axis_maior_reversus {
-				if self.axis_maior_horizontalis { inner_rect.max.x } else { inner_rect.max.y }
+				if self.axis_maior_horizontalis {
+					inner_rect.max.x + scroll_offset
+				} else {
+					inner_rect.max.y + scroll_offset
+				}
 			} else {
-				if self.axis_maior_horizontalis { inner_rect.min.x } else { inner_rect.min.y }
+				if self.axis_maior_horizontalis {
+					inner_rect.min.x - scroll_offset
+				} else {
+					inner_rect.min.y - scroll_offset
+				}
 			};
 
 			for (i, &size) in sizes.iter().enumerate() {
@@ -228,8 +273,8 @@ use vas::{Fovea, Redundantia, Spatium, Vas};
 
 pub struct LayoutFrame {
 	pub canvas_ui: egui::Ui,
-	pub panel_slots: Option<Vec<egui::Ui>>, // 3 lub 4 gniazda zależnie od trybu
-	pub nav_slots: Vec<egui::Ui>,           // 7 gniazd belki
+	pub panel_slots: Option<Vec<egui::Ui>>,
+	pub nav_slots: Vec<egui::Ui>,
 }
 
 impl LayoutFrame {
@@ -238,6 +283,7 @@ impl LayoutFrame {
 		let button = egui::Button::new(
 			egui::RichText::new(text).font(egui::FontId::proportional(theme::FONT_SIZE_BTN)).color(theme::TEXT_DEFAULT),
 		)
+		.wrap_mode(egui::TextWrapMode::Extend) // ZAKAZ ŁAMANIA WIERSZA W GUZIKACH
 		.min_size(egui::vec2(0.0, theme::BTN_HEIGHT))
 		.fill(bg);
 
@@ -294,15 +340,14 @@ impl AppLayout {
 		let full_rect = ui.available_rect_before_wrap();
 
 		// =========================================================
-		// A) "VAS" główny root
+		// A) "VAS" główny root (Compressio - ściskanie pionowe)
 		// =========================================================
 		let vas_root = Vas {
 			axis_maior_horizontalis: false,
-			axis_maior_reversus: true, // Od dołu do góry
+			axis_maior_reversus: true,
 			redundantia_maior: Redundantia::Compressio,
 			padding_am_cm_at_ct_gap: (0.0, 0.0, 0.0, 0.0, 0.0),
 			foveae: Box::new([
-				// Gniazdo 1: Belka dolna (najpierw, bo reversus = true buduje od dołu)
 				Fovea {
 					numerus: 1,
 					spatium: Spatium::Pixel(theme::BOTTOM_BAR_HEIGHT),
@@ -311,7 +356,6 @@ impl AppLayout {
 					repletio: false,
 					latens: false,
 				},
-				// Gniazdo 2: Panel Opcji
 				Fovea {
 					numerus: 2,
 					spatium: Spatium::Pixel(theme::PANEL_HEIGHT),
@@ -320,7 +364,6 @@ impl AppLayout {
 					repletio: false,
 					latens: !self.show_panel,
 				},
-				// Gniazdo 3: Kanwa
 				Fovea {
 					numerus: 3,
 					spatium: Spatium::Auto,
@@ -338,7 +381,7 @@ impl AppLayout {
 		let rect_canvas = root_rects.iter().find(|(n, _)| *n == 3).unwrap().1;
 
 		// =========================================================
-		// B) "VAS" Belka pozioma (w Gnieździe 1)
+		// B) "VAS" Belka pozioma (Volutatio - zachowanie rozmiarów i scroll)
 		// =========================================================
 		ui.painter().rect_filled(rect_nav, 0.0, theme::BOTTOM_BAR_BG);
 		ui.painter()
@@ -350,20 +393,41 @@ impl AppLayout {
 			redundantia_maior: Redundantia::Volutatio,
 			padding_am_cm_at_ct_gap: (10.0, 10.0, 4.0, 4.0, 8.0),
 			foveae: Box::new([
-				Fovea { numerus: 0, spatium: Spatium::Auto, ..Default::default() }, // Kalkulator
-				Fovea { numerus: 1, spatium: Spatium::Auto, ..Default::default() }, // Animacja
-				Fovea { numerus: 2, spatium: Spatium::Auto, ..Default::default() }, // Ukryj
-				Fovea { numerus: 3, spatium: Spatium::Auto, ..Default::default() }, // Debug
-				Fovea { numerus: 4, spatium: Spatium::Pixel(30.0), ..Default::default() }, // github web
-				Fovea { numerus: 5, spatium: Spatium::Pixel(30.0), ..Default::default() }, // github repo
-				Fovea { numerus: 6, spatium: Spatium::Pixel(20.0), ..Default::default() }, // localhost
+				Fovea { numerus: 0, spatium: Spatium::Auto, ..Default::default() },
+				Fovea { numerus: 1, spatium: Spatium::Auto, ..Default::default() },
+				Fovea { numerus: 2, spatium: Spatium::Auto, ..Default::default() },
+				Fovea { numerus: 3, spatium: Spatium::Auto, ..Default::default() },
+				Fovea { numerus: 4, spatium: Spatium::Pixel(30.0), ..Default::default() },
+				Fovea { numerus: 5, spatium: Spatium::Pixel(30.0), ..Default::default() },
+				Fovea { numerus: 6, spatium: Spatium::Pixel(20.0), ..Default::default() },
 			]),
 		};
 
+		// Obsługa Volutatio: Obliczanie przewijania i interakcja gestem/myszą
+		// bez blokowania kliknięć
+		let total_nav_width = vas_nav.total_content_length(rect_nav);
+		let max_scroll = (total_nav_width - rect_nav.width()).max(0.0);
+
+		let nav_scroll_id = ui.scope_id().with("vas_nav_volutatio_offset");
+		let mut scroll_x = ui.ctx().data_mut(|d| *d.get_temp_mut_or_default::<f32>(nav_scroll_id));
+
+		let is_pointer_down = ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary));
+		let pointer_pos = ui.input(|i| i.pointer.latest_pos());
+		if is_pointer_down && pointer_pos.is_some_and(|pos| rect_nav.contains(pos)) {
+			let delta_x = ui.input(|i| i.pointer.delta().x);
+			scroll_x -= delta_x;
+		}
+		if pointer_pos.is_some_and(|pos| rect_nav.contains(pos)) {
+			let wheel = ui.input(|i| i.smooth_scroll_delta.x + i.smooth_scroll_delta.y);
+			scroll_x -= wheel;
+		}
+		scroll_x = scroll_x.clamp(0.0, max_scroll);
+		ui.ctx().data_mut(|d| *d.get_temp_mut_or_default::<f32>(nav_scroll_id) = scroll_x);
+
 		let mut nav_slots = Vec::new();
-		for (_, r) in vas_nav.resolve(rect_nav) {
+		for (_, r) in vas_nav.resolve_scroll(rect_nav, scroll_x) {
 			let mut child = ui.new_child(egui::UiBuilder::new().max_rect(r));
-			child.set_clip_rect(r);
+			child.set_clip_rect(rect_nav);
 			nav_slots.push(child);
 		}
 
@@ -380,7 +444,6 @@ impl AppLayout {
 			let mut slots = Vec::new();
 
 			if self.mode == AppMode::BasicCalculations {
-				// C) VAS dla Kalkulatora
 				let vas_calc = Vas {
 					axis_maior_horizontalis: true,
 					axis_maior_reversus: false,
@@ -398,10 +461,9 @@ impl AppLayout {
 					slots.push(child);
 				}
 			} else {
-				// D) VAS dla Animacji
 				let vas_anim = Vas {
 					axis_maior_horizontalis: true,
-					axis_maior_reversus: true, // Od prawej do lewej
+					axis_maior_reversus: true,
 					redundantia_maior: Redundantia::Flexio,
 					padding_am_cm_at_ct_gap: (10.0, 10.0, 10.0, 10.0, 20.0),
 					foveae: Box::new([

@@ -19,6 +19,8 @@ pub mod core {
 }
 
 pub mod gui {
+  pub mod theme;
+  pub mod app_frame;
 	pub mod canvas;
 	pub mod controls;
 }

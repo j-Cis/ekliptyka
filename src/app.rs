@@ -141,6 +141,40 @@ impl eframe::App for EclipticaApp {
 			if LayoutFrame::toggle_button(nav_ui, self.debug_angle, debug_label).clicked() {
 				self.debug_angle = !self.debug_angle;
 			}
+
+			// --- LINKI ZEWNĘTRZNE ---
+			nav_ui.add_space(20.0);
+			nav_ui.separator();
+			nav_ui.add_space(8.0);
+
+			// 1. Wersja Live (GitHub Pages)
+			if nav_ui
+				.add(egui::Button::new(egui::RichText::new("👁️‍🗨️").size(16.0)).min_size(egui::vec2(28.0, 28.0)))
+				.on_hover_text("Wersja Live (GitHub Pages)")
+				.clicked()
+			{
+				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("https://j-cis.github.io/ekliptyka/"));
+			}
+
+			// 2. Repozytorium (GitHub)
+			if nav_ui
+				.add(egui::Button::new(egui::RichText::new("📦").size(16.0)).min_size(egui::vec2(28.0, 28.0)))
+				.on_hover_text("Kod źródłowy (GitHub)")
+				.clicked()
+			{
+				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("https://github.com/j-Cis/ekliptyka"));
+			}
+
+			nav_ui.add_space(4.0);
+
+			// 3. Localhost (Najmniejszy guzik)
+			if nav_ui
+				.add(egui::Button::new(egui::RichText::new("🕳️").size(12.0)).min_size(egui::vec2(20.0, 20.0)))
+				.on_hover_text("Localhost (127.0.0.1:8080)")
+				.clicked()
+			{
+				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("http://127.0.0.1:8080/"));
+			}
 		});
 
 		// Pętla animacji

@@ -1,6 +1,6 @@
 [package]
 name = "calc_earth_cycle"
-version = "0.1.0"
+version = "0.1.0-dev.1"
 authors = ["Jan Roman Cisowski „j-Cis” <code@cisowscy.com>"]
 edition = "2024"
 rust-version = "1.99.0"

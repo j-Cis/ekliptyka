@@ -2,19 +2,21 @@
 <html lang="pl">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calc Earth Cycle (j-Cis)</title>
     
     <!-- TRUNK MAGIC: To polecenie mówi Trunkowi, żeby skompilował projekt Rust i podpiął JS -->
     <link data-trunk rel="rust" href="../Cargo.toml" data-bin="calc_earth_cycle" data-wasm-opt="2" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>">
     <style>
-        html { touch-action: none; }
-        body {
+        html, body {
             margin: 0;
             padding: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;      /* Fallback 1 */
+            height: 100vh;     /* Fallback 2 */
+            height: 100dvh;    /* Docelowo: dynamiczna dla smartfonów 'd' - dynamic viewport height to klucz na smartfonach */
+            position: fixed;
             overflow: hidden;
             background: #1a1a1a;
         }

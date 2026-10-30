@@ -5,27 +5,27 @@ use eframe::egui::Color32;
 // ============================================================================
 
 // Kolory tła głównych obszarów
-pub const CANVAS_BG: Color32 = Color32::from_rgb(15, 23, 42); 
-pub const PANEL_BG: Color32 = Color32::from_rgb(30, 41, 59); 
-pub const BOTTOM_BAR_BG: Color32 = Color32::from_rgb(2, 15, 28); 
+pub const CANVAS_BG: Color32 = Color32::from_rgb(15, 23, 42);
+pub const PANEL_BG: Color32 = Color32::from_rgb(30, 41, 59);
+pub const BOTTOM_BAR_BG: Color32 = Color32::from_rgb(2, 15, 28);
 
 // Guziki (stany aktywne i nieaktywne typu toggle)
-pub const BTN_ACTIVE_BG: Color32 = Color32::from_rgb(12, 88, 164); 
-pub const BTN_INACTIVE_BG: Color32 = Color32::from_rgb(2, 15, 28); 
-pub const BTN_ACTION_BG: Color32 = Color32::from_rgb(15, 23, 42);  
+pub const BTN_ACTIVE_BG: Color32 = Color32::from_rgb(12, 88, 164);
+pub const BTN_INACTIVE_BG: Color32 = Color32::from_rgb(2, 15, 28);
+pub const BTN_ACTION_BG: Color32 = Color32::from_rgb(15, 23, 42);
 
 // Typografia i separatory
-pub const TEXT_DEFAULT: Color32 = Color32::WHITE;   
-pub const SEPARATOR_COLOR: Color32 = Color32::from_rgb(7, 43, 71); 
+pub const TEXT_DEFAULT: Color32 = Color32::WHITE;
+pub const SEPARATOR_COLOR: Color32 = Color32::from_rgb(7, 43, 71);
 
 // Pola tekstowe (Inputy)
-pub const INPUT_BG: Color32 = Color32::from_rgb(15, 23, 42);       
+pub const INPUT_BG: Color32 = Color32::from_rgb(15, 23, 42);
 
 // Wymiary wysokości (px)
-pub const PANEL_HEIGHT: f32 = 240.0;  
-pub const BOTTOM_BAR_HEIGHT: f32 = 38.0;  
-pub const BTN_HEIGHT: f32 = 34.0;  
-pub const INPUT_HEIGHT: f32 = 22.0;  
+pub const PANEL_HEIGHT: f32 = 240.0;
+pub const BOTTOM_BAR_HEIGHT: f32 = 38.0;
+pub const BTN_HEIGHT: f32 = 34.0;
+pub const INPUT_HEIGHT: f32 = 22.0;
 
 // Rozmiary czcionek (pt / px)
 pub const FONT_SIZE_BTN: f32 = 16.0;
@@ -34,10 +34,10 @@ pub const FONT_SIZE_LABEL: f32 = 15.0;
 pub const FONT_SIZE_SECTION_TITLE: f32 = 20.0;
 
 // Suwaki (Sliders)
-pub const SLIDER_RAIL_COLOR: Color32 = Color32::from_rgb(15, 23, 42);   
-pub const SLIDER_INPUT_BG: Color32 = Color32::from_rgb(15, 23, 42);     
-pub const SLIDER_HANDLE_COLOR: Color32 = Color32::from_rgb(12, 88, 164); 
-pub const SLIDER_HANDLE_BORDER: Color32 = Color32::from_rgb(180, 210, 240);    
+pub const SLIDER_RAIL_COLOR: Color32 = Color32::from_rgb(15, 23, 42);
+pub const SLIDER_INPUT_BG: Color32 = Color32::from_rgb(15, 23, 42);
+pub const SLIDER_HANDLE_COLOR: Color32 = Color32::from_rgb(12, 88, 164);
+pub const SLIDER_HANDLE_BORDER: Color32 = Color32::from_rgb(180, 210, 240);
 
 // ============================================================================
 // SEKCJA 2: ASTRONOMIA, PŁÓTNO (KANWA) I WYNIKI SCENARIUSZY

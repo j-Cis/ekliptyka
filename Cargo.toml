@@ -1,10 +1,37 @@
 [package]
-name = "ekliptyka"
+name = "calc_earth_cycle"
 version = "0.1.0"
+authors = ["Jan Roman Cisowski „j-Cis” <code@cisowscy.com>"]
 edition = "2024"
+rust-version = "1.99.0"
+repository = "https://github.com/j-Cis/ekliptyka"
+resolver = "3"
+
+[lib]
+name = "x"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 eframe = "0.37.0"
 egui = "0.37.0"
 jiff = "0.2.38"
+log = "0.4.34"
 vsop87 = "3.0.0"
+
+
+[profile.release]
+opt-level = 2
+
+[profile.release.package."*"]
+opt-level = 2
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlCanvasElement",
+	"Location",
+] }

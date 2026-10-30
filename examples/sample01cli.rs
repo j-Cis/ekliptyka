@@ -1,6 +1,6 @@
 use std::{env, process};
 
-use ekliptyka::core::astro::astro_plural::Cycle;
+use x::core::astro::astro_plural::Cycle;
 
 fn main() {
 	// Pobieramy argumenty z terminala

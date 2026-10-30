@@ -510,6 +510,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
+name = "calc_earth_cycle"
+version = "0.1.0"
+dependencies = [
+ "eframe",
+ "egui",
+ "jiff",
+ "log",
+ "vsop87",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "calloop"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -941,16 +955,6 @@ name = "either"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
-
-[[package]]
-name = "ekliptyka"
-version = "0.1.0"
-dependencies = [
- "eframe",
- "egui",
- "jiff",
- "vsop87",
-]
 
 [[package]]
 name = "emath"

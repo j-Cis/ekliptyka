@@ -8,8 +8,8 @@ use crate::{
 		astro_plural::Cycle,
 		specs::{find_time_and_distance_for_longitude, sun_position},
 	},
+	gui::theme,
 };
-use crate::gui::theme;
 
 pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 	match app.mode {
@@ -42,14 +42,14 @@ pub fn render_controls(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 
 					ui.horizontal(|ui| {
 						let calc1_btn = egui::Button::new(
-    egui::RichText::new("Oblicz 🌀")
-        .font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
-        .color(theme::TEXT_DEFAULT),
-)
-.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
-.fill(theme::BTN_ACTION_BG);
+							egui::RichText::new("Oblicz 🌀")
+								.font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
+								.color(theme::TEXT_DEFAULT),
+						)
+						.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
+						.fill(theme::BTN_ACTION_BG);
 
-if ui.add(calc1_btn).clicked() {
+						if ui.add(calc1_btn).clicked() {
 							let dt_str = format!(
 								"{}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:00{}",
 								app.input_from_timer.year.trim(),
@@ -113,14 +113,14 @@ if ui.add(calc1_btn).clicked() {
 
 					ui.horizontal(|ui| {
 						let calc2_btn = egui::Button::new(
-    egui::RichText::new("Oblicz 🗓️")
-        .font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
-        .color(theme::TEXT_DEFAULT),
-)
-.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
-.fill(theme::BTN_ACTION_BG);
+							egui::RichText::new("Oblicz 🗓️")
+								.font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
+								.color(theme::TEXT_DEFAULT),
+						)
+						.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
+						.fill(theme::BTN_ACTION_BG);
 
-if ui.add(calc2_btn).clicked() {
+						if ui.add(calc2_btn).clicked() {
 							let parsed_year = app.input_from_point.year.trim().parse::<i16>();
 							let parsed_angle = app.input_from_point.angle.trim().parse::<f64>();
 
@@ -184,14 +184,14 @@ if ui.add(calc2_btn).clicked() {
 
 					ui.horizontal(|ui| {
 						let calc3_btn = egui::Button::new(
-    egui::RichText::new("Oblicz ⚙️")
-        .font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
-        .color(theme::TEXT_DEFAULT),
-)
-.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
-.fill(theme::BTN_ACTION_BG);
+							egui::RichText::new("Oblicz ⚙️")
+								.font(egui::FontId::proportional(theme::FONT_SIZE_BTN))
+								.color(theme::TEXT_DEFAULT),
+						)
+						.min_size(egui::vec2(100.0, theme::BTN_HEIGHT))
+						.fill(theme::BTN_ACTION_BG);
 
-if ui.add(calc3_btn).clicked() {
+						if ui.add(calc3_btn).clicked() {
 							let parsed_year = app.input_from_parts.year.trim().parse::<i16>();
 							let parsed_parts = app.input_from_parts.parts.trim().parse::<u64>();
 

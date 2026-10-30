@@ -1,7 +1,6 @@
 use eframe::egui;
 
-use crate::app::EclipticaApp;
-use crate::gui::theme;
+use crate::{app::EclipticaApp, gui::theme};
 
 pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 	let (response, painter) = ui.allocate_painter(ui.available_size(), egui::Sense::hover());
@@ -33,10 +32,7 @@ pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 		orbit_points.push(sun_pos + egui::vec2(x, y));
 	}
 
-	painter.add(egui::Shape::line(
-		orbit_points,
-		egui::Stroke::new(theme::ORBIT_STROKE_WIDTH, theme::ORBIT_COLOR),
-	));
+	painter.add(egui::Shape::line(orbit_points, egui::Stroke::new(theme::ORBIT_STROKE_WIDTH, theme::ORBIT_COLOR)));
 
 	// --- ZNACZNIKI NA ORBICIE ---
 
@@ -48,10 +44,7 @@ pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 	let peri_pos = sun_pos + egui::vec2(peri_r * precession.cos(), -peri_r * precession.sin());
 	let peri_perp = egui::vec2(precession.sin(), precession.cos()) * 8.0;
 	let peri_out = egui::vec2(precession.cos(), -precession.sin());
-	painter.line_segment(
-		[peri_pos - peri_perp, peri_pos + peri_perp],
-		egui::Stroke::new(2.0, theme::PERYHELIUM_COLOR),
-	);
+	painter.line_segment([peri_pos - peri_perp, peri_pos + peri_perp], egui::Stroke::new(2.0, theme::PERYHELIUM_COLOR));
 	painter.text(
 		peri_pos + peri_out * theme::ORBIT_LABELS_OFFSET,
 		egui::Align2::CENTER_CENTER,
@@ -65,10 +58,7 @@ pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 	let aph_r = p / (1.0 - e);
 	let aph_pos = sun_pos + egui::vec2(aph_r * aph_theta.cos(), -aph_r * aph_theta.sin());
 	let aph_out = egui::vec2(aph_theta.cos(), -aph_theta.sin());
-	painter.line_segment(
-		[aph_pos - peri_perp, aph_pos + peri_perp],
-		egui::Stroke::new(2.0, theme::APHELIUM_COLOR),
-	);
+	painter.line_segment([aph_pos - peri_perp, aph_pos + peri_perp], egui::Stroke::new(2.0, theme::APHELIUM_COLOR));
 	painter.text(
 		aph_pos + aph_out * theme::ORBIT_LABELS_OFFSET,
 		egui::Align2::CENTER_CENTER,
@@ -80,7 +70,12 @@ pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 	// B. Równonoce (Zielone Romby na osi poziomej - kąty 0 i PI)
 	let equinoxes = [
 		(0.0, "Northward\nEquinox", egui::Align2::CENTER_CENTER, egui::vec2(theme::ORBIT_LABELS_OFFSET, 0.0)),
-		(std::f32::consts::PI, "Southward\nEquinox", egui::Align2::CENTER_CENTER, egui::vec2(-theme::ORBIT_LABELS_OFFSET, 0.0)),
+		(
+			std::f32::consts::PI,
+			"Southward\nEquinox",
+			egui::Align2::CENTER_CENTER,
+			egui::vec2(-theme::ORBIT_LABELS_OFFSET, 0.0),
+		),
 	];
 	let mut eq_positions = Vec::new();
 	for &(eq_theta, label, align, text_offset) in &equinoxes {
@@ -212,10 +207,8 @@ pub fn render_orbit(app: &mut EclipticaApp, ui: &mut egui::Ui) {
 
 			painter.circle_filled(pos, theme::EARTH_SIZE, theme::EARTH_COLOR);
 
-			let text_offset = egui::vec2(
-				theme::SCENARIO_3_LABEL_OFFSET * theta.cos(),
-				-theme::SCENARIO_3_LABEL_OFFSET * theta.sin(),
-			);
+			let text_offset =
+				egui::vec2(theme::SCENARIO_3_LABEL_OFFSET * theta.cos(), -theme::SCENARIO_3_LABEL_OFFSET * theta.sin());
 			painter.text(
 				pos + text_offset,
 				egui::Align2::CENTER_CENTER,

@@ -27,13 +27,13 @@ pub struct InputParts {
 	pub zone: String,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum AppMode {
 	BasicCalculations,
 	Animation,
 }
 
-#[derive(Clone)]
+#[derive(Clone)] // Uwaga: String nie implementuje Copy
 pub struct PlottedPoint {
 	pub label: String,
 	pub info: String,
@@ -102,80 +102,58 @@ impl Default for EclipticaApp {
 
 impl eframe::App for EclipticaApp {
 	fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-		let layout = AppLayout { show_panel: self.show_bottom_panel, ..Default::default() };
+		let layout = AppLayout { 
+			show_panel: self.show_bottom_panel, 
+			mode: self.mode 
+		};
 
 		let mut frame = layout.begin(ui);
 
 		// 1. Zapełniamy Kanwę (góra)
 		canvas::render_orbit(self, &mut frame.canvas_ui);
 
-		// 2. Zapełniamy Chowany Panel z kontrolkami (środek)
-		if let Some(mut drawer_ui) = frame.drawer_ui {
-			egui::ScrollArea::vertical().auto_shrink([false; 2]).show(&mut drawer_ui, |scroll_ui| {
-				controls::render_controls(self, scroll_ui);
-			});
+		// 2. Zapełniamy Chowany Panel z kontrolkami (bezpośrednio w gniazda foveae)
+		if let Some(mut slots) = frame.panel_slots {
+			controls::render_controls(self, &mut slots);
 		}
 
-		// 3. Zapełniamy Dolną Belkę używając NASZYCH, stylizowanych przycisków
-		frame.nav_ui.horizontal_centered(|nav_ui| {
-			nav_ui.add_space(8.0);
+		// 3. Zapełniamy Dolną Belkę wstrzykując elementy do jej 7 foveae
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[0], self.mode == AppMode::BasicCalculations, "🧮 Kalkulator").clicked() {
+			self.mode = AppMode::BasicCalculations;
+		}
 
-			let is_calc = self.mode == AppMode::BasicCalculations;
-			if LayoutFrame::toggle_button(nav_ui, is_calc, "🧮 Kalkulator").clicked() {
-				self.mode = AppMode::BasicCalculations;
-			}
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[1], self.mode == AppMode::Animation, "🌀 Animacja").clicked() {
+			self.mode = AppMode::Animation;
+		}
 
-			let is_anim = self.mode == AppMode::Animation;
-			if LayoutFrame::toggle_button(nav_ui, is_anim, "🌀 Animacja").clicked() {
-				self.mode = AppMode::Animation;
-			}
+		let panel_label = if self.show_bottom_panel { "🔽 Ukryj" } else { "🔼 Panel" };
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[2], self.show_bottom_panel, panel_label).clicked() {
+			self.show_bottom_panel = !self.show_bottom_panel;
+		}
 
-			nav_ui.separator();
+		let debug_label = if self.debug_angle { "🛠 Debug: ON" } else { "🛠 Debug: OFF" };
+		if LayoutFrame::toggle_button(&mut frame.nav_slots[3], self.debug_angle, debug_label).clicked() {
+			self.debug_angle = !self.debug_angle;
+		}
 
-			let panel_label = if self.show_bottom_panel { "🔽 Ukryj" } else { "🔼 Panel" };
-			if LayoutFrame::toggle_button(nav_ui, self.show_bottom_panel, panel_label).clicked() {
-				self.show_bottom_panel = !self.show_bottom_panel;
-			}
+		// --- LINKI ZEWNĘTRZNE (ORYGINALNE IKONY UŻYTKOWNIKA) ---
+		let btn_web = egui::Button::new(egui::RichText::new("👁️‍🗨️").size(16.0));
+		let size_web = frame.nav_slots[4].available_size();
+		if frame.nav_slots[4].add_sized(size_web, btn_web).on_hover_text("Wersja Live (GitHub Pages)").clicked() {
+			frame.nav_slots[4].ctx().open_url(egui::OpenUrl::new_tab("https://j-cis.github.io/ekliptyka/"));
+		}
 
-			let debug_label = if self.debug_angle { "🛠 Debug: ON" } else { "🛠 Debug: OFF" };
-			if LayoutFrame::toggle_button(nav_ui, self.debug_angle, debug_label).clicked() {
-				self.debug_angle = !self.debug_angle;
-			}
+		let btn_repo = egui::Button::new(egui::RichText::new("📦").size(16.0));
+		let size_repo = frame.nav_slots[5].available_size();
+		if frame.nav_slots[5].add_sized(size_repo, btn_repo).on_hover_text("Kod źródłowy (GitHub)").clicked() {
+			frame.nav_slots[5].ctx().open_url(egui::OpenUrl::new_tab("https://github.com/j-Cis/ekliptyka"));
+		}
 
-			// --- LINKI ZEWNĘTRZNE ---
-			nav_ui.add_space(20.0);
-			nav_ui.separator();
-			nav_ui.add_space(8.0);
-
-			// 1. Wersja Live (GitHub Pages)
-			if nav_ui
-				.add(egui::Button::new(egui::RichText::new("👁️‍🗨️").size(16.0)).min_size(egui::vec2(28.0, 28.0)))
-				.on_hover_text("Wersja Live (GitHub Pages)")
-				.clicked()
-			{
-				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("https://j-cis.github.io/ekliptyka/"));
-			}
-
-			// 2. Repozytorium (GitHub)
-			if nav_ui
-				.add(egui::Button::new(egui::RichText::new("📦").size(16.0)).min_size(egui::vec2(28.0, 28.0)))
-				.on_hover_text("Kod źródłowy (GitHub)")
-				.clicked()
-			{
-				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("https://github.com/j-Cis/ekliptyka"));
-			}
-
-			nav_ui.add_space(4.0);
-
-			// 3. Localhost (Najmniejszy guzik)
-			if nav_ui
-				.add(egui::Button::new(egui::RichText::new("🕳️").size(12.0)).min_size(egui::vec2(20.0, 20.0)))
-				.on_hover_text("Localhost (127.0.0.1:8080)")
-				.clicked()
-			{
-				nav_ui.ctx().open_url(egui::OpenUrl::new_tab("http://127.0.0.1:8080/"));
-			}
-		});
+		let btn_local = egui::Button::new(egui::RichText::new("🕳️").size(12.0));
+		let size_local = frame.nav_slots[6].available_size();
+		if frame.nav_slots[6].add_sized(size_local, btn_local).on_hover_text("Localhost (127.0.0.1:8080)").clicked() {
+			frame.nav_slots[6].ctx().open_url(egui::OpenUrl::new_tab("http://127.0.0.1:8080/"));
+		}
 
 		// Pętla animacji
 		if self.mode == AppMode::Animation && self.is_playing {
